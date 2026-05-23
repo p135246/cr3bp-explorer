@@ -12,7 +12,7 @@ Unprotect@@Names["CR3BP`*"];
 
 ClearAll@@Names["CR3BP`*"];
 
-\[Mu]::usage="Mass parameter. Need to be initialized by set\[Mu][\[Mu]].";
+\[Mu]::usage="Mass parameter. Needs to be initialized by set\[Mu][\[Mu]].";
 
 xS::usage="Position of the first mass (Sun)";
 
@@ -24,7 +24,7 @@ rJ::usage="Radius of the second mass (Jupiter)";
 
 set\[Mu]::usage="set\[Mu][x] sets \[Mu]=x. There are predefined values for x=\"Sun-Jupiter\", \"Earth-Moon\", \"Pluto-Charon\"";
 
-rotatingToSpatial::usage="rotatingToSpatial[t,{x,y}] converts coordinates {x,y} in the rotating frame to coordinates in the intertial frame.";
+rotatingToSpatial::usage="rotatingToSpatial[t,{x,y}] converts coordinates {x,y} in the rotating frame to coordinates in the inertial frame.";
 
 energy::usage="Ueff[{x,y,vx,vy}] energy of the point in phase space with coordinates {x,y,vx,vy} in the rotating frame.";
 
@@ -55,9 +55,9 @@ getOrbit::usage="getOrbit[{x0,y0,vx0,vy0},{tmin,tmax}] gives the orbit {x[t],y[t
 
 getSTM::usage="getSTM[orb,{mint,maxt}] returns the state transition matrix \[Phi][t][[i,j]] along the orbit 'orb' with respect to the rotating frame. Optional parameters are those of 'NDSolve' and 'InitialCondition->IdentityMatrix[4]'.";
 
-getPeriodicOrbitIC::usage="getPeriodicOrbitIC[{x00,y00,vx00,vy00}] returns {{x0,y0,vx0,vy0},{0,T}}, where {x0,y0,vx0,vy0} is the approximate initial condition of a nearby symmetric periodic orbit and T is its approximate period. Works only for points in the form {x00,0,0,vy00} by \"shooting\", detecting the first point with y1=0 and adjusting the initial vy00 (keeping x00 fixed) by themethod of differential corrections, so that 'vx1' gets smaller and smaller (ideally to 0).  The search stops when either 'vx1' has order of 'Vx1Order->4' or the number 'Iterations->50' of iterations exceeds. If 'DoAllIterations->False' is set to True, all the specified iterations are done. If 'MaxCrossingTime->Infinite' is specified, the search for the y1=0 crossings stops after this time. The other options are thoand those of getOrbitCrossings (and getSTM).";
+getPeriodicOrbitIC::usage="getPeriodicOrbitIC[{x00,y00,vx00,vy00}] returns {{x0,y0,vx0,vy0},{0,T}}, where {x0,y0,vx0,vy0} is the approximate initial condition of a nearby symmetric periodic orbit and T is its approximate period. Works only for points in the form {x00,0,0,vy00} by \"shooting\", detecting the first point with y1=0 and adjusting the initial vy00 (keeping x00 fixed) by the method of differential corrections, so that 'vx1' gets smaller and smaller (ideally to 0).  The search stops when either 'vx1' has order of 'Vx1Order->4' or the number 'Iterations->50' of iterations exceeds. If 'DoAllIterations->False' is set to True, all the specified iterations are done. If 'MaxCrossingTime->Infinity' is specified, the search for the y1=0 crossings stops after this time. The other options are those of getOrbitCrossings (and getSTM).";
 
-getOrbitCrossings ::usage="getOrbitCrossings[axis,{x0,y0,vx0,vy0},{mint,maxt}] where returns the list {orbit,{{t1,{x1,y1,vx1,vy1}},{t2,{x2,y2,vx2,vy2}},...} of an orbit 'orbit' in the rotating coordinates and pairs of a time 'ti' between 'mint' and 'maxt' and a point '{xi,yi,vxi,vyi}=Table[orbit[[k]][ti],{k,1,4}]' where holds xi=='CrossValue' (if 'axis'=\"x\") or yi=='CrossValue' (if 'axis'=\"y\") and the condition 'TestFunction[{xi,yi,vxi,vyi}]'. Maximally 'CrossCount->1' crossings is detected until the computation of the orbit stops (so it stops either on CrossCount detections or at time maxt). Default options are 'CrossValue->0', 'CrossCount->1' and 'TestFunction->Function[x,True]'. The 'axis' and the 'TestFunction' can be set to one of the predefined 'ysection1Q' and \"y\", 'xsection2Q' and \"x\", 'xsection3Q' and \"x\" ot 'ysection4Q' and \"y\". Other optional parameters are those of 'NDSolve'.";
+getOrbitCrossings ::usage="getOrbitCrossings[axis,{x0,y0,vx0,vy0},{mint,maxt}] where returns the list {orbit,{{t1,{x1,y1,vx1,vy1}},{t2,{x2,y2,vx2,vy2}},...} of an orbit 'orbit' in the rotating coordinates and pairs of a time 'ti' between 'mint' and 'maxt' and a point '{xi,yi,vxi,vyi}=Table[orbit[[k]][ti],{k,1,4}]' where holds xi=='CrossValue' (if 'axis'=\"x\") or yi=='CrossValue' (if 'axis'=\"y\") and the condition 'TestFunction[{xi,yi,vxi,vyi}]'. Maximally 'CrossCount->1' crossings is detected until the computation of the orbit stops (so it stops either on CrossCount detections or at time maxt). Default options are 'CrossValue->0', 'CrossCount->1' and 'TestFunction->Function[x,True]'. The 'axis' and the 'TestFunction' can be set to one of the predefined 'ysection1Q' and \"y\", 'xsection2Q' and \"x\", 'xsection3Q' and \"x\" or 'ysection4Q' and \"y\". Other optional parameters are those of 'NDSolve'.";
 
 getNextPeriodicOrbitSeed::usage="getNextPeriodicOrbitSeed[lyaporb,{tmin,tmax},deltaenergy] returns a guess of the initial condition {x0,y0,vx0,vy0} of a periodic orbit with energy E=energy[lyaporb[tmin]]+deltaenergy. Optional parameters are MaximalDisplacementParameter and MonodromyMatrix.";
 
@@ -207,9 +207,9 @@ linearEnergy[lpnum_,{\[Xi]_,\[Eta]_,\[Zeta]1_,\[Zeta]2_}]:=With[{lp=lagrangePts[
 
 
 
-getLinearSolution[lpnum_,{\[Xi]0_,\[Eta]0_,\[Zeta]10_,\[Zeta]20_}]:= 
+getLinearSolution[lpnum_,{\[Xi]0_,\[Eta]0_,\[Zeta]10_,\[Zeta]20_}]:=
 
-Function[t,Evaluate[linearToRotating[lpnum,{\[Xi]0 Exp[\[Lambda] t],\[Eta]0 Exp[-\[Lambda] t],\[Zeta]10 Cos[-\[Nu] t] +\[Zeta]20 Sin[\[Nu] t],\[Zeta]10 Sin[-\[Nu] t] + \[Zeta]20 Cos[\[Nu] t]}]/. xe->lagrangePts[[lpnum]]]];
+t |-> Evaluate[linearToRotating[lpnum,{\[Xi]0 Exp[\[Lambda] t],\[Eta]0 Exp[-\[Lambda] t],\[Zeta]10 Cos[-\[Nu] t] +\[Zeta]20 Sin[\[Nu] t],\[Zeta]10 Sin[-\[Nu] t] + \[Zeta]20 Cos[\[Nu] t]}]/. xe->lagrangePts[[lpnum]]];
 
 
 
@@ -221,9 +221,7 @@ If[en>=Ueff[lagrangePts[[lpnum]]],
 
 linearToRotating[lpnum,
 
-{0, 0, -Part[
-
-FindRoot[
+{0, 0, -FindRoot[
 
 energy[linearToRotating[lpnum,{0,0,-u,0}]]==en,
 
@@ -231,14 +229,15 @@ energy[linearToRotating[lpnum,{0,0,-u,0}]]==en,
 
 Evaluate[FilterRules[{opt},Options[FindRoot]]]
 
-]
-
-1,1,2],
+][[1,2]],
 
 0}
 
 ]
 
+,
+
+$Failed
 
 ];
 
@@ -414,9 +413,11 @@ If[grad[ic0] . ev1>0, ev1, -ev1]
 
 deltav={deltav[[1]],0,0,deltav[[4]]};
 
-NDSolve[{u'[t]==grad[ic0+t*deltav] . deltav, u[0]==energy[ic0], 
+t0=$Failed;
 
-WhenEvent[u[t]==energy[ic0]+deltaenergy,t0=t;"StopIntegraion"]},
+NDSolve[{u'[t]==grad[ic0+t*deltav] . deltav, u[0]==energy[ic0],
+
+WhenEvent[u[t]==energy[ic0]+deltaenergy,t0=t;"StopIntegration"]},
 
 {u},
 
@@ -426,7 +427,7 @@ FilterRules[{opt},Options[NDSolve]]
 
 ];
 
-ic0+t0*deltav
+If[t0===$Failed,$Failed,ic0+t0*deltav]
 
 ];
 

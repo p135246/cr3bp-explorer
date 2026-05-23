@@ -1,6 +1,6 @@
 # CR3BP_Explorer
 
-The primary goal of this project is to implement some algorithms for space mission design based on chaotic dynamics in the three-body problem in Mathematica 10.4 and create an easy to use interface for demonstration purposes. This includes the so called tube dynamics using invariant manifolds from [1] and the method of weak stability boundary from [2].
+The primary goal of this project is to implement some algorithms for space mission design based on chaotic dynamics in the three-body problem in Mathematica 10.4 and create an easy-to-use interface for demonstration purposes. This includes the so-called tube dynamics using invariant manifolds from [1] and the method of weak stability boundary from [2].
 
 CR3BP stands for the circular restricted three-body problem which is the mathematical model used.
 
@@ -11,10 +11,10 @@ Version from 08.12.18 --- Trajectories with prescribed itineraries in the CR3BP 
 
   * The shooting algorithm with initial values coming from the linearized problem converges only for energies E slightly above the energy E(L) of the Lagrange point L. In order to get Lyapunov orbits at both L_1 and L_2 simultaneously for given E, we have to choose E>E(L_2)>E(L_1) slightly above E(L_2), so that both necks are open; however, depending on E(L_2)-E(L_1), it might happen that E is not slightly above E(L_1) anymore. Therefore, we have to find the Lyapunov orbit for an energy E(L_2)>E'>E(L_1) by shooting and then extend it to E = E'+dE by the algorithm in question. 
 
-* See *Documents/CR3BP.pdf* for a talk based [1] for explanation of the mathematics.
+* See *Documents/CR3BP.pdf* for a talk based on [1] for explanation of the mathematics.
 
 * The library *CR3BP.wl* is used by the Mathematica 10.4 notebook *explorer.nb*, which is a functioning prototype of the promised user interface. One can look for Lyapunov orbits, draw stable and unstable manifolds and search for their intersections at various Poincare sections. The explorer keeps a list of computed data whose visualization can be turned on and off. Zooming is possible. The following are some nice examples:
-  * For \mu="Sun-Jupiter",  the Lagrange point L_2 and dE=0.0015, one can find 1:1 homoclinic transverse interesection of stable and unstable manifolds at U_4 in the exterior realm.
+  * For \mu="Sun-Jupiter",  the Lagrange point L_2 and dE=0.0015, one can find 1:1 homoclinic transverse intersection of stable and unstable manifolds at U_4 in the exterior realm.
   ![alt text](https://github.com/p135246/CR3BP_Explorer/blob/master/Graphics/moonflyby.jpg)
   ![alt text](https://github.com/p135246/CR3BP_Explorer/blob/master/Graphics/11homoclinig.jpeg)
 
@@ -25,7 +25,7 @@ Version from 08.12.18 --- Trajectories with prescribed itineraries in the CR3BP 
 * TODO
   * Write manual to *explorer.nb*
   * Implement the algorithm for Lyapunov orbits with higher energy.
-  * Find some more examples, e.g. parameters E and \mu for and a complete homoclinic-heteroclinic chain!
+  * Find some more examples, e.g. parameters E and \mu for a complete homoclinic-heteroclinic chain!
   * Long term - Implement the methods of weak stability boundary from [2] and compare to [1]
 
 * There are the following mathematical and algorithmic problems suitable for further optimization:
