@@ -12,6 +12,29 @@ Unprotect@@Names["CR3BP`*"];
 
 ClearAll@@Names["CR3BP`*"];
 
+(* On reload, discard the previous implementation, including legacy private
+   option symbols, before resolving the public options below. *)
+Unprotect@@Names["CR3BP`Private`*"];
+Remove["CR3BP`Private`*"];
+
+InitialAx::usage="InitialAx is the starting amplitude used by getLinearizedPeriodicOrbitIC.";
+InitialCondition::usage="InitialCondition is the initial matrix used by getSTM.";
+Vx1Order::usage="Vx1Order specifies the decimal order required for the shooting residual.";
+Iterations::usage="Iterations is the maximum number of shooting iterations.";
+DoAllIterations::usage="DoAllIterations forces all shooting iterations before checking the result.";
+MaxCrossingTime::usage="MaxCrossingTime is the maximum time used to find a shooting crossing.";
+CrossValue::usage="CrossValue is the coordinate value defining the crossing plane.";
+CrossCount::usage="CrossCount is the maximum number of accepted crossings.";
+TestFunction::usage="TestFunction selects accepted phase-space crossings.";
+PointCount::usage="PointCount is the number of manifold initial conditions.";
+ClosedOrbit::usage="ClosedOrbit controls whether the final orbit sample is omitted.";
+MinimalTime::usage="MinimalTime is the lower integration time for manifold trajectories.";
+MaximalTime::usage="MaximalTime is the upper integration time for manifold trajectories.";
+ReturnSolutions::usage="ReturnSolutions controls whether manifold trajectories are returned.";
+Epsilon::usage="Epsilon is the signed displacement from the periodic orbit.";
+MonodromyMatrix::usage="MonodromyMatrix optionally supplies a precomputed monodromy matrix.";
+MaximalDisplacementParameter::usage="MaximalDisplacementParameter limits the continuation seed search.";
+
 \[Mu]::usage="Mass parameter. Needs to be initialized by set\[Mu][\[Mu]].";
 
 xS::usage="Position of the first mass (Sun)";
@@ -26,7 +49,7 @@ set\[Mu]::usage="set\[Mu][x] sets \[Mu]=x. There are predefined values for x=\"S
 
 rotatingToSpatial::usage="rotatingToSpatial[t,{x,y}] converts coordinates {x,y} in the rotating frame to coordinates in the inertial frame.";
 
-energy::usage="Ueff[{x,y,vx,vy}] energy of the point in phase space with coordinates {x,y,vx,vy} in the rotating frame.";
+energy::usage="energy[{x,y,vx,vy}] gives the energy of the point in phase space with coordinates {x,y,vx,vy} in the rotating frame.";
 
 Ueff::usage="Ueff[{x,y}] effective potential of the spatial point with coordinates {x,y} in the rotating frame.";
 
@@ -51,7 +74,7 @@ getLinearizedPeriodicOrbitIC::usage="getLinearizedPeriodicOrbitIC[lpnum,en] find
 
 
 
-getOrbit::usage="getOrbit[{x0,y0,vx0,vy0},{tmin,tmax}] gives the orbit {x[t],y[t],vx[t],vy[t]} starting in {x0,y0,vx0,vy0} in the rotating frame at time tmin evolving until the time tmax. Optionals parameters are those of 'NDSolve'.";
+getOrbit::usage="getOrbit[{x0,y0,vx0,vy0},{tmin,tmax}] gives the orbit {x[t],y[t],vx[t],vy[t]} on the requested interval, with the specified rotating-frame initial condition at time 0. Negative times propagate backward. Optional parameters are those of NDSolve.";
 
 getSTM::usage="getSTM[orb,{mint,maxt}] returns the state transition matrix \[Phi][t][[i,j]] along the orbit 'orb' with respect to the rotating frame. Optional parameters are those of 'NDSolve' and 'InitialCondition->IdentityMatrix[4]'.";
 
@@ -66,6 +89,10 @@ If 'ClosedOrbit->True' is True, an initial condition is taken at 'orbit[orbmint]
 
 getPoincareSection::usage=
 "getPoincareSection[manifold,axis,orbit,{orbmint,orbmaxt}] returns the Poincare section of the unstable (manifold=\"u\") or stable (manifold=\"s\") manifold of the periodic orbit 'orbit'. It calls 'getParamCrossings[axis,orbit,Y,{orbmint,orbmaxt}]' with 'Y' computed from the eigenvectors of the monodromy matrix of the periodic orbit multiplied by 'Epsilon->0.0001'. Other options are those of 'getParamCrossings' (and 'getSTM' for the monodromy matrix).";
+
+orbitPlot::usage="orbitPlot[orbit,{tmin,tmax}] plots a previously computed orbit in rotating-frame position coordinates. Options are those of ParametricPlot.";
+sectionPlot::usage="sectionPlot[points,{i,j}] plots coordinates i and j of a list of previously computed crossing states; {1,3} is the default. Options are those of ListPlot.";
+scenePlot::usage="scenePlot[association,keys] displays selected named Graphics layers. Use All to display all layers. The layers are reused; scenePlot does not integrate trajectories. Options are those of Graphics.";
 
 ysection1Q::usage="ysection1Q[{x,y,vx,vy}] tests (x<0)&&(vy<0). It corresponds to \!\(\*SubscriptBox[\(U\), \(1\)]\)={x<0,vy<0,y=0}." ;
 
@@ -122,9 +149,9 @@ w2={1,I \[Tau], -I \[Nu], \[Nu] \[Tau]};
 
 set\[Mu][x_]:=(Unprotect[\[Mu]]; 
 \[Mu]=Switch[x,
-"Sun-Jupiter",SetPrecision[9.537*^-4,Infinity],
-"Earth-Moon",SetPrecision[1.215*^-2,Infinity],
-"Pluto-Charon",SetPrecision[1.097*^-1,Infinity],
+"Sun-Jupiter",9537/10000000,
+"Earth-Moon",1215/100000,
+"Pluto-Charon",1097/10000,
 _?NumberQ,x];
  Protect[\[Mu]]);
 
@@ -306,13 +333,16 @@ FilterRules[{opt},Options[NDSolve]]
 
 
 
-Options[getPeriodicOrbitIC]=Join[Options[getOrbitCrossings],Options[getSTM],{Vx1Order->4,Iterations->50,DoAllIterations->False, MaxCrossingTime->Infinity}];
+Options[getPeriodicOrbitIC]:=Join[Options[getOrbitCrossings],Options[getSTM],{Vx1Order->4,Iterations->50,DoAllIterations->False, MaxCrossingTime->Infinity}];
 
+getPeriodicOrbitIC::nocross="No usable y=0 crossing was found during shooting. Increase MaxCrossingTime or change the seed.";
+getPeriodicOrbitIC::singular="The differential correction is singular at the crossing; no periodic-orbit initial condition was returned.";
+getPeriodicOrbitIC::noconv="Shooting did not reach the requested residual in `1` iterations.";
 
 getPeriodicOrbitIC[{x00_,y00_,vx00_,vy00_},opt:OptionsPattern[]]:=
 
 
-Module[{x0,y0,vx0,vy0,x1,y1,vx1,dvx1,u,vy1,t1,sol,orbit,stm,cnt,continue,\[Phi]1},
+Module[{x0,y0,vx0,vy0,x1,y1,vx1,dvx1,u,vy1,t1,sol,orbit,stm,cnt,continue,denom,\[Phi]1},
 
 {x0,y0,vx0,vy0}={x00,0,0,vy00};
 
@@ -321,19 +351,22 @@ continue=True;
 cnt=1;
 
 With[{
-workprec=OptionValue[WorkingPrecision],
 getOrbitCrossingsOpt=FilterRules[{opt},Options[getOrbitCrossings]],
 getSTMOpt=FilterRules[{opt},Options[getSTM]]
 },
 
-(* THE FOLLOWING CYCLE DOES NOT PRESERVE PRECISION DURING THE CALCULATION. BUT IT DOES NOT MATTER SINCE IT JUST FINDS AN INITIAL CONDITION AND THE RESULT WILL BE ALREADY COMPUTED WITH THE GIVEN PRECISION. *)
+(* Keep the precision actually supplied by the seed and numerical solutions.
+   A later integration cannot recover digits that were not computed here. *)
 
 While[continue,
 
 sol=getOrbitCrossings["y",
-SetPrecision[{x0,y0,vx0,vy0},workprec],
+{x0,y0,vx0,vy0},
 {0,OptionValue[MaxCrossingTime]},
 getOrbitCrossingsOpt];
+
+If[!MatchQ[sol, {_List, {{_?NumericQ, {__?NumericQ}}, ___}}],
+Message[getPeriodicOrbitIC::nocross]; Return[$Failed]];
 
 orbit=sol[[1]];
 
@@ -345,15 +378,22 @@ continue=(cnt<OptionValue[Iterations])&&(OptionValue[DoAllIterations]||(Abs[vx1]
 
 If[continue,
 
-stm=getSTM[SetPrecision[orbit,workprec],
-{0,SetPrecision[t1,workprec]},
+stm=getSTM[orbit,
+{0,t1},
 getSTMOpt];
+
+If[Head[stm] =!= InterpolatingFunction,
+Message[getPeriodicOrbitIC::singular]; Return[$Failed]];
 
 \[Phi]1=stm[t1];
 
 dvx1=D[orbit[[3]][u],u]/.u->t1;
 
-vy0=vy0 - vx1/(\[Phi]1[[3,4]]-dvx1/vy1 \[Phi]1[[2,4]]);
+If[PossibleZeroQ[vy1], Message[getPeriodicOrbitIC::singular]; Return[$Failed]];
+denom=\[Phi]1[[3,4]]-dvx1/vy1 \[Phi]1[[2,4]];
+If[!NumericQ[denom] || PossibleZeroQ[denom],
+Message[getPeriodicOrbitIC::singular]; Return[$Failed]];
+vy0=vy0 - vx1/denom;
 
 cnt++
 
@@ -363,7 +403,9 @@ cnt++
 
 ];
 
-{{x0,y0,vx0,vy0},{0,2 t1}}
+If[Abs[vx1]>=10^(-OptionValue[Vx1Order]),
+Message[getPeriodicOrbitIC::noconv,cnt]; $Failed,
+{{x0,y0,vx0,vy0},{0,2 t1}}]
 
 ];
 
@@ -528,7 +570,7 @@ Table[getOrbitCrossings[axis,initialpts[[k]],{OptionValue[MinimalTime],OptionVal
 (* Returns {{f1,{f1t1,f1t2}},{f3,{f3t1}},...} of functions their ordered intersection times *)
 ];
 
-GatherBy[res,Length[#[[2]]]&]
+SortBy[GatherBy[res,Length[#[[2]]]&],Length[#[[1,2]]]&]
  (* Gathers the list above by the number of intersection points *)
 
 ,
@@ -564,29 +606,41 @@ Options[getPoincareSection]=Join[Options[getParamCrossings],Options[getSTM],{Eps
 
 getPoincareSection[manifold_,axis_,orbit_,{orbmint_,orbmaxt_},opt:OptionsPattern[]]:=
 
-Module[{Y,Y0,\[Phi]M,stm},
-
-With[{workprec=OptionValue[WorkingPrecision]},
+Module[{Y,Y0,\[Phi]M,stm,eigsys,which},
 
 stm=getSTM[orbit,{orbmint,orbmaxt},FilterRules[{opt},Options[getSTM]]];
 
+If[Head[stm] =!= InterpolatingFunction, Return[$Failed]];
+
 \[Phi]M=stm[orbmaxt];
 
-Y0=Switch[manifold,"s",
-Part[#,2,Ordering[Part[#,1],1]//Sequence]&[Eigensystem[\[Phi]M]]//Flatten,
-"u",Part[#,2,Ordering[Part[#,1],-1]//Sequence]&[Eigensystem[\[Phi]M]]//Flatten
-];
+eigsys=Eigensystem[\[Phi]M];
+which=Switch[manifold,"s",First[Ordering[Abs[eigsys[[1]]],1]],
+"u",First[Ordering[Abs[eigsys[[1]]],-1]],_,Return[$Failed]];
+Y0=eigsys[[2,which]];
 
-Y[t_]:=SetPrecision[OptionValue[Epsilon] Normalize[stm[t] . Y0],2 workprec];
-(* Y is used to find an initial condition only. Setting its precision higher than it really is does not increase the precision of the orbit with this IC. So it does not cause an 'imprecision loss'.*)
+Y[t_]:=OptionValue[Epsilon] Normalize[stm[t] . Y0];
 
 
 getParamCrossings[axis,orbit,Y,{orbmint,orbmaxt},FilterRules[{opt},Options[getParamCrossings]]]
 
-
-]
-
 ];
+
+Options[orbitPlot]=Options[ParametricPlot];
+orbitPlot[orbit_List,{tmin_,tmax_},opt:OptionsPattern[]]:=
+ParametricPlot[Evaluate[{orbit[[1]][t],orbit[[2]][t]}],{t,tmin,tmax},
+Evaluate[Sequence@@FilterRules[{opt},Options[ParametricPlot]]]];
+
+Options[sectionPlot]=Options[ListPlot];
+sectionPlot[points_List,coordinates:{_Integer,_Integer}:{1,3},opt:OptionsPattern[]]:=
+ListPlot[If[points==={}, {}, points[[All,coordinates]]],
+FilterRules[{opt},Options[ListPlot]]];
+
+Options[scenePlot]=Options[Graphics];
+scenePlot[layers_Association,selection:(All|{___}),opt:OptionsPattern[]]:=
+Module[{graphics=Values[If[selection===All,layers,KeyTake[layers,selection]]]},
+If[graphics==={},Graphics[{},FilterRules[{opt},Options[Graphics]]],
+Show[graphics,FilterRules[{opt},Options[Graphics]]]]];
 
 
 ysection1Q[{x_,y_,vx_,vy_}]:=(x<0)&&(vy<0);  (* y=0 *)
